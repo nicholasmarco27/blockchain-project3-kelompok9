@@ -130,12 +130,12 @@ project2/
 
 | No | Screenshot | Keterangan |
 |---|---|---|
-| 1 | ![compile](screenshots/compile.png) | `npx hardhat compile` berhasil |
-| 2 | ![test](screenshots/test.png) | `npx hardhat test` semua passing |
-| 3 | ![deploy](screenshots/deploy.png) | Output contract address |
-| 4 | ![metamask](screenshots/metamask.png) | MetaMask terhubung ke Hardhat Local |
-| 5 | ![tx1](screenshots/tx1.png) | Transaksi addTodo berhasil |
-| 6 | ![tx2](screenshots/tx2.png) | Transaksi completeTodo berhasil |
+| 1 | ![compile](screenshots/compile1.png)<br>![compile](screenshots/compile2.png) | `npx hardhat compile` berhasil |
+| 2 | ![test](screenshots/testing.png) | `npx hardhat test` semua passing |
+| 3 | ![deploy](screenshots/contactaddress.png) | Output contract address |
+| 4 | ![metamask](screenshots/metamask1.png)<br>![metamask](screenshots/metamask2.png)<br>![metamask](screenshots/metamask3.png)| MetaMask terhubung ke Hardhat Local |
+| 5 | ![tx1](screenshots/transaction.png) | Transaksi addTodo berhasil |
+| 6 | ![tx2](screenshots/transaction.png) | Transaksi completeTodo berhasil |
 
 ## MetaMask Setup
 
