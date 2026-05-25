@@ -62,7 +62,7 @@ Untuk coverage:
 npx hardhat coverage
 ```
 
-### Deploy (Local)
+### Deploy di Local
 
 Terminal 1 — jalankan local blockchain:
 
@@ -76,7 +76,7 @@ Terminal 2 — deploy contract:
 npx hardhat run scripts/deploy.js --network localhost
 ```
 
-### Interact (Opsional)
+### Interact
 
 Setelah deploy, salin alamat contract ke `scripts/interact.js` pada variabel `CONTRACT_ADDRESS`, lalu:
 
@@ -98,12 +98,12 @@ Deployer         : 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
 ```
 project2/
 ├── contracts/
-│   └── TodoList.sol        # Smart contract utama
+│   └── TodoList.sol
 ├── test/
-│   └── TodoList.test.js    # 25+ unit tests
+│   └── TodoList.test.js
 ├── scripts/
-│   ├── deploy.js           # Deployment script
-│   └── interact.js         # Demo interaksi
+│   ├── deploy.js
+│   └── interact.js
 ├── hardhat.config.js
 ├── package.json
 ├── .gitignore
@@ -112,7 +112,7 @@ project2/
 
 ## Test Coverage
 
-| Kategori | Test Cases |
+| Kategori | Jumlah Test Cases |
 |---|---|
 | Deployment | 3 |
 | Add Todo (Positive + Event + Negative) | 5 |
@@ -126,12 +126,11 @@ project2/
 
 ## Screenshot
 
-> Tambahkan screenshot di sini setelah demo
 
 | No | Screenshot | Keterangan |
 |---|---|---|
 | 1 | ![compile](screenshots/compile1.png)<br>![compile](screenshots/compile2.png) | `npx hardhat compile` berhasil |
-| 2 | ![test](screenshots/testing.png) | `npx hardhat test` semua passing |
+| 2 | ![test](screenshots/testing.png) | `npx hardhat test` semua passed |
 | 3 | ![deploy](screenshots/contactaddress.png) | Output contract address |
 | 4 | ![metamask](screenshots/metamask1.png)<br>![metamask](screenshots/metamask2.png)<br>![metamask](screenshots/metamask3.png)| MetaMask terhubung ke Hardhat Local |
 | 5 | ![tx1](screenshots/transaction.png) | Transaksi addTodo berhasil |
