@@ -1,11 +1,11 @@
-# TodoList On-Chain
+# Final Project Blockchain - To-Do List
 
 ## Deskripsi
 
 Aplikasi To-Do List terdesentralisasi (dApp) yang mengintegrasikan smart contract Solidity dengan frontend berbasis React dan Vite. Aplikasi ini memungkinkan pengguna untuk mencatat aktivitas tugas, menentukan batas waktu (deadline), mengatur tingkat prioritas, menandai tugas selesai, serta membagikan tugas secara peer-to-peer ke alamat wallet lain langsung di atas jaringan blockchain lokal.
 
 
-## Anggota Kelompok
+## Anggota Kelompok 9
 
 - Nicholas Marco Weinandra (5027221042)
 - Muhammad Arsy Athallah
@@ -29,6 +29,9 @@ Aplikasi To-Do List terdesentralisasi (dApp) yang mengintegrasikan smart contrac
 - **Deadline** — setiap todo bisa diberi batas waktu (unix timestamp)
 - **Priority Level** — tiga tingkat prioritas: LOW, MEDIUM, HIGH
 - **Shared Todo** — user dapat berbagi todo ke address lain
+- **Filter** — tampilkan tugas berdasarkan status: Semua / Aktif / Selesai
+- **Drag & Drop Reorder** — urutkan tugas dengan seret-lepas (urutan disimpan per-akun di localStorage)
+- **Deadline Reminder** — badge "Terlewat" / "Segera" dan banner pengingat untuk tugas yang jatuh tempo < 24 jam
 
 ## Arsitektur Smart Contract
 
@@ -114,11 +117,39 @@ project2/
 ├── scripts/
 │   ├── deploy.js
 │   └── interact.js
+├── frontend/
+│   └── src/
+│       ├── components/
+│       │   ├── ConnectWallet.jsx   # Koneksi MetaMask
+│       │   ├── AccountBar.jsx      # Tampilan akun + jumlah tugas (read)
+│       │   ├── NetworkWarning.jsx  # Warning jika jaringan salah
+│       │   ├── StatusBanner.jsx    # Feedback transaksi & error
+│       │   ├── TodoForm.jsx        # Tambah tugas (write)
+│       │   ├── TodoList.jsx        # Daftar tugas (read)
+│       │   ├── TodoItem.jsx        # Aksi: selesai / hapus / bagikan (write)
+│       │   └── ShareForm.jsx       # Bagikan tugas (write)
+│       ├── utils/
+│       │   ├── contract.js         # Alamat & ABI contract
+│       │   └── helpers.js          # getContract, formatter, parseError
+│       └── App.jsx                 # State management & orkestrasi Web3
 ├── hardhat.config.js
 ├── package.json
 ├── .gitignore
 └── README.md
 ```
+
+### Pemenuhan Requirement Frontend & Integrasi
+
+| Komponen | Implementasi |
+|---|---|
+| **Components (min 4)** | 8 komponen terpisah di `frontend/src/components/` |
+| **Read Operations (min 2)** | `getTodos()` + `userTodoCount(address)` |
+| **Write Operations (min 2)** | `addTodo`, `completeTodo`, `deleteTodo`, `shareTodo` |
+| **Loading States** | State `loading` + status `pending` di setiap transaksi |
+| **Error Handling** | `parseError()` → pesan ramah pengguna |
+| **Wallet Connection** | `eth_requestAccounts` + listener `accountsChanged` |
+| **Network Detection** | Deteksi `chainId` 31337 + warning + tombol switch jaringan |
+| **Responsive Design** | CSS mobile-first dengan media query |
 
 ## Test Coverage
 

@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 contract TodoList {
     address public owner;
-    uint256 public totalTodos;
+    uint256 public totalTodos; //private aja
 
     enum Priority { LOW, MEDIUM, HIGH }
 
