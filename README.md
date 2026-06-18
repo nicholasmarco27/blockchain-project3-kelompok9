@@ -2,11 +2,20 @@
 
 ## Deskripsi
 
-Aplikasi **Todo List** yang seluruh datanya tersimpan di blockchain menggunakan **Solidity** dan **Hardhat**. Setiap pengguna memiliki daftar todo pribadi yang dikelola melalui smart contract. Mendukung fitur bonus: deadline, priority level, dan shared todo.
+Aplikasi To-Do List terdesentralisasi (dApp) yang mengintegrasikan smart contract Solidity dengan frontend berbasis React dan Vite. Aplikasi ini memungkinkan pengguna untuk mencatat aktivitas tugas, menentukan batas waktu (deadline), mengatur tingkat prioritas, menandai tugas selesai, serta membagikan tugas secara peer-to-peer ke alamat wallet lain langsung di atas jaringan blockchain lokal.
+
 
 ## Anggota Kelompok
 
 - Nicholas Marco Weinandra (5027221042)
+- Muhammad Arsy Athallah
+- Muhammad Rifqi Oktaviansyah (5027221067)
+
+## Tech Stack
+- **Smart Contract:** Solidity v0.8.20 + Hardhat
+- **Frontend:** React + Vite
+- **Web3 Library:** ethers.js (v6)
+- **Wallet Extension:** MetaMask
 
 ## Fitur
 
@@ -36,7 +45,8 @@ Aplikasi **Todo List** yang seluruh datanya tersimpan di blockchain menggunakan 
 ### Prerequisites
 
 - Node.js v18+
-- npm
+- MetaMask Browser Extension
+- Git
 
 ### Installation
 
@@ -145,3 +155,51 @@ project2/
    - Chain ID: `31337`
    - Currency Symbol: `ETH`
 3. Import akun: gunakan salah satu private key yang ditampilkan saat `npx hardhat node`
+
+## Cara Menjalankan 
+### Prerequisites
+- Node.js v18+
+- MetaMask Browser Extension
+- Git
+
+### 1. Clone & Install Dependencies
+```bash
+# Clone repositori ini
+git clone [url-repo]
+cd blockchain-project3-team-alpha
+
+# Install dependencies untuk root (Hardhat/Backend)
+npm install
+
+# Install dependencies untuk Frontend
+cd frontend
+npm install
+cd ..
+```
+### 2. Jalankan Local Blockchain (Hardhat Node)
+Buka terminal utama kamu, lalu nyalakan simulator blockchain lokal:
+```bash
+npx hardhat node
+```
+Biarkan terminal ini tetap terbuka dan menyala.
+
+### 3. Deploy Smart Contract
+Buka terminal baru (Terminal 2), jalankan perintah migrasi ini untuk memasang kontrak pintar ke localhost:
+```bash
+npx hardhat run scripts/deploy.js --network localhost
+```
+Salin alamat kontrak yang muncul setelah deploy berhasil.
+
+### 4. Konfigurasi Alamat Kontrak di Frontend
+Buka berkas `frontend/src/utils/contract.js`, lalu perbarui nilai variabel `CONTRACT_ADDRESS` dengan alamat kontrak baru yang baru saja kamu salin:
+```bash
+export const CONTRACT_ADDRESS = "ISI_ALAMAT_KONTRAK_KAMU_DISINI";
+```
+
+### 5. Jalankan Aplikasi Frontend React
+Masuk ke direktori folder frontend pada Terminal 2, lalu nyalakan server lokal:
+```bash
+cd frontend
+npm run dev
+```
+Buka browser kamu dan akses link: `http://localhost:5173`
