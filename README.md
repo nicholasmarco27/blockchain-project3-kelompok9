@@ -8,7 +8,7 @@ Aplikasi To-Do List terdesentralisasi (dApp) yang mengintegrasikan smart contrac
 ## Anggota Kelompok 9
 
 - Nicholas Marco Weinandra (5027221042)
-- Muhammad Arsy Athallah
+- Muhammad Arsy Athallah (5027221048)
 - Muhammad Rifqi Oktaviansyah (5027221067)
 
 ## Tech Stack
