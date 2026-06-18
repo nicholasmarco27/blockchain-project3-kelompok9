@@ -165,6 +165,14 @@ project2/
 | Bonus: Share Todo | 5 |
 | **Total** | **28** |
 
+## Demo Video
+
+Demo lengkap fitur dApp dari connect wallet hingga transaksi berhasil:
+
+<video src="screenshots/demo.mp4" controls width="100%"></video>
+
+> Jika video tidak tampil otomatis di GitHub, unduh/putar langsung di sini: [screenshots/demo.mp4](screenshots/demo.mp4)
+
 ## Screenshot
 
 
