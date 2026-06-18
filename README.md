@@ -169,9 +169,7 @@ project2/
 
 Demo lengkap fitur dApp dari connect wallet hingga transaksi berhasil:
 
-<video src="screenshots/demo.mp4" controls width="100%"></video>
-
-> Jika video tidak tampil otomatis di GitHub, unduh/putar langsung di sini: [screenshots/demo.mp4](screenshots/demo.mp4)
+https://drive.google.com/file/d/1bXIWcWl7BbS1azSO2Xb6V-82-eFiKrXi/view?usp=sharing
 
 ## Screenshot
 
