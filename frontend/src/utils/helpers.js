@@ -1,15 +1,40 @@
 import { ethers } from "ethers";
-import { CONTRACT_ADDRESS, CONTRACT_ABI } from "./contract";
+import { NETWORKS, CONTRACT_ABI } from "./contract";
 
 // Membuat instance contract. needSigner=true untuk transaksi write,
 // false (default) untuk operasi read.
+// Alamat kontrak dipilih otomatis sesuai jaringan aktif (Multiple Network Support).
 export const getContract = async (needSigner = false) => {
   const provider = new ethers.BrowserProvider(window.ethereum);
+  const { chainId } = await provider.getNetwork();
+  const cfg = NETWORKS[Number(chainId)];
+
+  if (!cfg) {
+    throw new Error(
+      "Jaringan tidak didukung. Silakan beralih ke Hardhat Local atau Sepolia Testnet."
+    );
+  }
+  if (!cfg.contractAddress) {
+    throw new Error(
+      `Kontrak belum di-deploy di ${cfg.name}. Lengkapi alamat kontrak terlebih dahulu.`
+    );
+  }
+
   if (needSigner) {
     const signer = await provider.getSigner();
-    return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+    return new ethers.Contract(cfg.contractAddress, CONTRACT_ABI, signer);
   }
-  return new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+  return new ethers.Contract(cfg.contractAddress, CONTRACT_ABI, provider);
+};
+
+// Nama jaringan singkat dari chainId (untuk badge & UI).
+export const getNetworkName = (chainId) =>
+  NETWORKS[Number(chainId)]?.shortName || "Tidak Dikenal";
+
+// URL block explorer untuk sebuah transaksi (null jika jaringan tanpa explorer).
+export const getExplorerTxUrl = (chainId, hash) => {
+  const explorer = NETWORKS[Number(chainId)]?.blockExplorer;
+  return explorer ? `${explorer}/tx/${hash}` : null;
 };
 
 // Memendekkan address: 0x1234...abcd

@@ -8,10 +8,12 @@
     "coverage": "hardhat coverage",
     "node": "hardhat node",
     "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
     "interact:local": "hardhat run scripts/interact.js --network localhost"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.6.1",
     "hardhat": "^2.22.0"
   }
 }

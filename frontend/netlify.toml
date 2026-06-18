@@ -1,0 +1,12 @@
+# Konfigurasi hosting Netlify untuk frontend (Bonus: Frontend Hosting)
+# Set "Base directory" = frontend di dashboard Netlify.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# SPA fallback agar refresh tidak 404
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

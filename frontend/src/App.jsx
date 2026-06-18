@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { getContract, parseError, getDeadlineStatus } from "./utils/helpers";
-import { EXPECTED_CHAIN_ID, EXPECTED_CHAIN_HEX } from "./utils/contract";
+import { NETWORKS, SUPPORTED_CHAIN_IDS, DEFAULT_CHAIN_ID } from "./utils/contract";
 import ConnectWallet from "./components/ConnectWallet";
 import AccountBar from "./components/AccountBar";
 import NetworkWarning from "./components/NetworkWarning";
@@ -9,8 +9,13 @@ import ReminderBanner from "./components/ReminderBanner";
 import TodoForm from "./components/TodoForm";
 import FilterBar from "./components/FilterBar";
 import TodoList from "./components/TodoList";
+import TodoSkeleton from "./components/TodoSkeleton";
 import ShareForm from "./components/ShareForm";
+import TransactionHistory from "./components/TransactionHistory";
+import ThemeToggle from "./components/ThemeToggle";
 import "./App.css";
+
+const HISTORY_LIMIT = 25;
 
 function App() {
   const [account, setAccount] = useState("");
@@ -20,11 +25,15 @@ function App() {
   const [shareId, setShareId] = useState(null);
   const [filter, setFilter] = useState("all");
   const [orderIds, setOrderIds] = useState([]); // urutan tampilan (drag-drop)
+  const [txHistory, setTxHistory] = useState([]); // riwayat transaksi (bonus)
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false); // untuk skeleton
+  const [liveActive, setLiveActive] = useState(false); // event listening aktif?
   const [txStatus, setTxStatus] = useState("");
   const [error, setError] = useState("");
 
-  const isCorrectNetwork = chainId === EXPECTED_CHAIN_ID;
+  // Multiple Network Support: jaringan dianggap valid jika termasuk daftar yang didukung.
+  const isSupportedNetwork = SUPPORTED_CHAIN_IDS.includes(chainId);
 
   // --- Network detection ---
   const readChainId = useCallback(async () => {
@@ -33,11 +42,14 @@ function App() {
     setChainId(parseInt(id, 16));
   }, []);
 
-  const switchNetwork = async () => {
+  // Berpindah jaringan ke chainId tertentu (default Hardhat Local).
+  const switchNetwork = async (targetChainId = DEFAULT_CHAIN_ID) => {
+    const cfg = NETWORKS[targetChainId];
+    if (!cfg || !window.ethereum) return;
     try {
       await window.ethereum.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: EXPECTED_CHAIN_HEX }],
+        params: [{ chainId: cfg.chainHex }],
       });
     } catch (err) {
       // 4902 = jaringan belum ditambahkan ke MetaMask -> tambahkan otomatis
@@ -46,10 +58,11 @@ function App() {
           method: "wallet_addEthereumChain",
           params: [
             {
-              chainId: EXPECTED_CHAIN_HEX,
-              chainName: "Hardhat Local",
-              rpcUrls: ["http://127.0.0.1:8545"],
-              nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+              chainId: cfg.chainHex,
+              chainName: cfg.name,
+              rpcUrls: cfg.rpcUrls,
+              nativeCurrency: cfg.currency,
+              blockExplorerUrls: cfg.blockExplorer ? [cfg.blockExplorer] : undefined,
             },
           ],
         });
@@ -118,11 +131,49 @@ function App() {
       );
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   }, [account]);
 
-  // --- Generic write wrapper: handle loading + tx lifecycle + error ---
-  const runTx = async (buildTx) => {
+  // --- Transaction History helpers (bonus) ---
+  // Riwayat disimpan per-akun di localStorage agar persisten antar sesi.
+  const persistHistory = useCallback(
+    (list) => {
+      if (account) localStorage.setItem(`txHistory_${account}`, JSON.stringify(list));
+    },
+    [account]
+  );
+
+  const recordTx = useCallback(
+    (entry) => {
+      setTxHistory((prev) => {
+        const next = [entry, ...prev].slice(0, HISTORY_LIMIT);
+        persistHistory(next);
+        return next;
+      });
+    },
+    [persistHistory]
+  );
+
+  const updateTxStatus = useCallback(
+    (hash, status) => {
+      setTxHistory((prev) => {
+        const next = prev.map((e) => (e.hash === hash ? { ...e, status } : e));
+        persistHistory(next);
+        return next;
+      });
+    },
+    [persistHistory]
+  );
+
+  const clearHistory = () => {
+    setTxHistory([]);
+    if (account) localStorage.removeItem(`txHistory_${account}`);
+  };
+
+  // --- Generic write wrapper: handle loading + tx lifecycle + history + error ---
+  const runTx = async (buildTx, label) => {
+    let txHash;
     try {
       setLoading(true);
       setTxStatus("pending");
@@ -130,12 +181,17 @@ function App() {
 
       const contract = await getContract(true);
       const tx = await buildTx(contract);
+      txHash = tx.hash;
+      recordTx({ hash: tx.hash, label, status: "pending", ts: Date.now(), chainId });
+
       await tx.wait(); // tunggu konfirmasi blok
 
+      updateTxStatus(tx.hash, "success");
       setTxStatus("success");
       await fetchData(); // refresh data setelah state berubah
       return true;
     } catch (err) {
+      if (txHash) updateTxStatus(txHash, "failed");
       setTxStatus("failed");
       setError(parseError(err));
       return false;
@@ -147,15 +203,15 @@ function App() {
   // --- Write operations (4): addTodo, completeTodo, deleteTodo, shareTodo ---
   const handleAdd = (content, deadline, priority) => {
     const ts = deadline ? Math.floor(new Date(deadline).getTime() / 1000) : 0;
-    return runTx((c) => c.addTodo(content, ts, priority));
+    return runTx((c) => c.addTodo(content, ts, priority), "Tambah Tugas");
   };
 
-  const handleComplete = (id) => runTx((c) => c.completeTodo(id));
+  const handleComplete = (id) => runTx((c) => c.completeTodo(id), "Selesaikan Tugas");
 
-  const handleDelete = (id) => runTx((c) => c.deleteTodo(id));
+  const handleDelete = (id) => runTx((c) => c.deleteTodo(id), "Hapus Tugas");
 
   const handleShare = async (id, to) => {
-    const ok = await runTx((c) => c.shareTodo(id, to));
+    const ok = await runTx((c) => c.shareTodo(id, to), "Bagikan Tugas");
     if (ok) setShareId(null);
     return ok;
   };
@@ -221,20 +277,65 @@ function App() {
     return { overdue, soon };
   }, [todos]);
 
-  // Muat urutan tersimpan saat akun berganti
+  // Muat urutan + riwayat tersimpan saat akun berganti
   useEffect(() => {
     if (!account) {
       setOrderIds([]);
+      setTxHistory([]);
       return;
     }
-    const saved = localStorage.getItem(`todoOrder_${account}`);
-    setOrderIds(saved ? JSON.parse(saved) : []);
+    const savedOrder = localStorage.getItem(`todoOrder_${account}`);
+    setOrderIds(savedOrder ? JSON.parse(savedOrder) : []);
+    const savedHistory = localStorage.getItem(`txHistory_${account}`);
+    setTxHistory(savedHistory ? JSON.parse(savedHistory) : []);
   }, [account]);
 
-  // Ambil data saat akun/jaringan siap
+  // Ambil data saat akun/jaringan siap (tandai initial loading untuk skeleton)
   useEffect(() => {
-    if (account && isCorrectNetwork) fetchData();
-  }, [account, isCorrectNetwork, fetchData]);
+    if (account && isSupportedNetwork) {
+      setInitialLoading(true);
+      fetchData();
+    }
+  }, [account, isSupportedNetwork, fetchData]);
+
+  // --- Event Listening (real-time): UI update otomatis saat ada event ---
+  // Mendengarkan event kontrak untuk akun ini (termasuk tugas yang
+  // dibagikan ke kita oleh orang lain) lalu menyegarkan data otomatis.
+  const fetchDataRef = useRef(fetchData);
+  useEffect(() => {
+    fetchDataRef.current = fetchData;
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (!account || !isSupportedNetwork || !window.ethereum) {
+      setLiveActive(false);
+      return;
+    }
+    let contract;
+    let cancelled = false;
+
+    const onChange = () => fetchDataRef.current();
+
+    (async () => {
+      try {
+        contract = await getContract(false);
+      } catch {
+        return; // kontrak belum ada di jaringan ini
+      }
+      if (cancelled) return;
+      contract.on(contract.filters.TodoAdded(account), onChange);
+      contract.on(contract.filters.TodoCompleted(account), onChange);
+      contract.on(contract.filters.TodoDeleted(account), onChange);
+      contract.on(contract.filters.TodoShared(null, account), onChange); // share masuk
+      setLiveActive(true);
+    })();
+
+    return () => {
+      cancelled = true;
+      setLiveActive(false);
+      if (contract) contract.removeAllListeners();
+    };
+  }, [account, isSupportedNetwork, chainId]);
 
   // Listener perubahan akun & jaringan dari MetaMask
   useEffect(() => {
@@ -261,6 +362,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
+        <ThemeToggle />
         <h1>📝 Blockchain To-Do List</h1>
         <p className="app-tagline">Tugas Anda tersimpan permanen di blockchain.</p>
       </header>
@@ -271,16 +373,19 @@ function App() {
         <>
           <AccountBar
             account={account}
-            isCorrectNetwork={isCorrectNetwork}
+            chainId={chainId}
+            isSupportedNetwork={isSupportedNetwork}
             todoCount={todoCount}
+            liveActive={liveActive}
+            onSwitchNetwork={switchNetwork}
             onDisconnect={disconnectWallet}
           />
 
-          {!isCorrectNetwork && <NetworkWarning onSwitch={switchNetwork} />}
+          {!isSupportedNetwork && <NetworkWarning onSwitch={switchNetwork} />}
 
           <StatusBanner txStatus={txStatus} error={error} />
 
-          {isCorrectNetwork && (
+          {isSupportedNetwork && (
             <>
               <TodoForm onAdd={handleAdd} loading={loading} />
 
@@ -298,16 +403,22 @@ function App() {
               <section className="todo-list-section">
                 <h2>Daftar Tugas Anda</h2>
                 <FilterBar filter={filter} onChange={setFilter} counts={counts} />
-                <TodoList
-                  todos={displayedTodos}
-                  onComplete={handleComplete}
-                  onDelete={handleDelete}
-                  onShare={(id) => setShareId(id)}
-                  onReorder={handleReorder}
-                  reorderable={true}
-                  loading={loading}
-                />
+                {initialLoading && todos.length === 0 ? (
+                  <TodoSkeleton count={3} />
+                ) : (
+                  <TodoList
+                    todos={displayedTodos}
+                    onComplete={handleComplete}
+                    onDelete={handleDelete}
+                    onShare={(id) => setShareId(id)}
+                    onReorder={handleReorder}
+                    reorderable={true}
+                    loading={loading}
+                  />
+                )}
               </section>
+
+              <TransactionHistory history={txHistory} onClear={clearHistory} />
             </>
           )}
         </>

@@ -1,9 +1,19 @@
 import React from "react";
-import { formatAddress } from "../utils/helpers";
+import { formatAddress, getNetworkName } from "../utils/helpers";
+import NetworkSwitcher from "./NetworkSwitcher";
 
-// Menampilkan address akun yang terkoneksi, status jaringan,
-// jumlah tugas user (operasi read kedua: userTodoCount), dan tombol disconnect.
-function AccountBar({ account, isCorrectNetwork, todoCount, onDisconnect }) {
+// Menampilkan address akun yang terkoneksi, status jaringan + switcher,
+// jumlah tugas user (operasi read kedua: userTodoCount), indikator
+// event real-time, dan tombol disconnect.
+function AccountBar({
+  account,
+  chainId,
+  isSupportedNetwork,
+  todoCount,
+  liveActive,
+  onSwitchNetwork,
+  onDisconnect,
+}) {
   return (
     <div className="account-bar">
       <div className="account-info">
@@ -13,10 +23,18 @@ function AccountBar({ account, isCorrectNetwork, todoCount, onDisconnect }) {
         </span>
       </div>
       <div className="account-meta">
-        <span className={`badge ${isCorrectNetwork ? "badge-ok" : "badge-warn"}`}>
-          {isCorrectNetwork ? "● Hardhat Local" : "● Jaringan Salah"}
+        <span className={`badge ${isSupportedNetwork ? "badge-ok" : "badge-warn"}`}>
+          {isSupportedNetwork
+            ? `● ${getNetworkName(chainId)}`
+            : "● Jaringan Salah"}
         </span>
+        {isSupportedNetwork && liveActive && (
+          <span className="badge badge-live" title="Event listening aktif — UI update otomatis">
+            <span className="live-dot" /> Live
+          </span>
+        )}
         <span className="badge badge-count">{todoCount} tugas aktif</span>
+        <NetworkSwitcher currentChainId={chainId} onSwitch={onSwitchNetwork} />
         <button className="btn btn-secondary btn-sm" onClick={onDisconnect}>
           Disconnect
         </button>
